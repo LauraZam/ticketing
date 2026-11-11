@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE import-control PUBLIC
+        "-//Checkstyle//DTD Import Control Configuration 1.4//EN"
+        "https://checkstyle.org/dtds/import_control_1_4.dtd">
+<import-control pkg="kz.kimep.ticketing">
+    <!-- Global Allowed External & Utility Packages -->
+    <allow pkg="java"/>
+    <allow pkg="javax"/>
+    <allow pkg="org.springframework"/>
+    <allow pkg="jakarta"/>
+    <allow pkg="lombok"/>
+    <allow pkg="io.jsonwebtoken"/>
+    <allow pkg="com.fasterxml.jackson"/>
+    <allow pkg="kz.kimep.ticketing.shared"/>
+
+    <!-- Identity Module -->
+    <subpackage name="identity">
+        <allow pkg="kz.kimep.ticketing.identity"/>
+        <disallow pkg="kz.kimep.ticketing.catalog"/>
+        <disallow pkg="kz.kimep.ticketing.booking"/>
+        <disallow pkg="kz.kimep.ticketing.payment"/>
+    </subpackage>
+
+    <!-- Catalog Module -->
+    <subpackage name="catalog">
+        <allow pkg="kz.kimep.ticketing.catalog"/>
+        <allow pkg="kz.kimep.ticketing.identity.domain"/>
+        <disallow pkg="kz.kimep.ticketing.booking"/>
+        <disallow pkg="kz.kimep.ticketing.payment"/>
+        <disallow pkg="kz.kimep.ticketing.identity.repo"/>
+        <disallow pkg="kz.kimep.ticketing.identity.service"/>
+    </subpackage>
+
+    <!-- Booking Module -->
+    <subpackage name="booking">
+        <allow pkg="kz.kimep.ticketing.booking"/>
+        <allow pkg="kz.kimep.ticketing.identity"/>
+        <allow pkg="kz.kimep.ticketing.catalog.domain"/>
+        <allow pkg="kz.kimep.ticketing.catalog.service"/>
+        <allow pkg="kz.kimep.ticketing.payment.domain"/>
+        <allow pkg="kz.kimep.ticketing.payment.service"/>
+        <disallow pkg="kz.kimep.ticketing.catalog.repo"/>
+        <disallow pkg="kz.kimep.ticketing.payment.repo"/>
+    </subpackage>
+
+    <!-- Payment Module -->
+    <subpackage name="payment">
+        <allow pkg="kz.kimep.ticketing.payment"/>
+        <allow pkg="kz.kimep.ticketing.booking.domain"/>
+        <allow pkg="kz.kimep.ticketing.identity.domain"/>
+        <disallow pkg="kz.kimep.ticketing.booking.repo"/>
+        <disallow pkg="kz.kimep.ticketing.catalog"/>
+    </subpackage>
+
+    <!-- Shared Module -->
+    <subpackage name="shared">
+        <allow pkg="kz.kimep.ticketing.identity"/>
+        <allow pkg="kz.kimep.ticketing.catalog"/>
+        <allow pkg="kz.kimep.ticketing.booking"/>
+        <allow pkg="kz.kimep.ticketing.payment"/>
+    </subpackage>
+
+    <!-- Messaging Module -->
+    <subpackage name="messaging">
+        <allow pkg="kz.kimep.ticketing.messaging"/>
+        <allow pkg="kz.kimep.ticketing.booking.domain"/>
+        <allow pkg="kz.kimep.ticketing.catalog.domain"/>
+        <allow pkg="kz.kimep.ticketing.identity.domain"/>
+        <allow pkg="kz.kimep.ticketing.payment.domain"/>
+    </subpackage>
+</import-control>
