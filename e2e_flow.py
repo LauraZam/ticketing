@@ -1,21 +1,21 @@
 import json
+import random
 import uuid
 import requests
 
 BASE_URL = "http://localhost:8080/api/v1"
 EVENT_ID = 1
-SEAT_ID = 100  # Pick an available seat for testing
 
 
 def run_e2e_flow():
     session = requests.Session()
+    seat_id = random.randint(101, 1500)
+
     print("=" * 60)
     print("🚀 STARTING FULL END-TO-END TICKETING TRANSACTION FLOW")
     print("=" * 60)
 
-    # -------------------------------------------------------------
-    # STEP 1: User Registration & Authentication
-    # -------------------------------------------------------------
+    # 1. Register User & Obtain JWT
     unique_id = uuid.uuid4().hex[:6]
     email = f"e2e_user_{unique_id}@example.com"
     password = "Password123!"
@@ -27,7 +27,7 @@ def run_e2e_flow():
         "role": "CUSTOMER"
     }
 
-    print(f"\n[1/4] Registering User ({email})...")
+    print(f"\n[1/3] Registering User ({email})...")
     resp = session.post(f"{BASE_URL}/auth/register", json=register_payload)
     if resp.status_code not in (200, 201):
         print(f"❌ Registration failed ({resp.status_code}): {resp.text}")
@@ -41,15 +41,13 @@ def run_e2e_flow():
     }
     print("✅ Authentication successful. JWT token obtained.")
 
-    # -------------------------------------------------------------
-    # STEP 2: Atomic Seat Hold (Redis Lua)
-    # -------------------------------------------------------------
+    # 2. Atomic Seat Hold (Redis Lua)
     hold_payload = {
         "eventId": EVENT_ID,
-        "seatIds": [SEAT_ID]
+        "seatIds": [seat_id]
     }
 
-    print(f"\n[2/4] Holding Seat #{SEAT_ID} for Event #{EVENT_ID}...")
+    print(f"\n[2/3] Holding Seat #{seat_id} for Event #{EVENT_ID}...")
     resp = session.post(f"{BASE_URL}/holds", json=hold_payload, headers=headers)
     if resp.status_code not in (200, 201):
         print(f"❌ Seat hold failed ({resp.status_code}): {resp.text}")
@@ -59,45 +57,24 @@ def run_e2e_flow():
     hold_reference = hold_data.get("holdReference") or hold_data.get("id")
     print(f"✅ Seat hold acquired! Hold Reference: {hold_reference}")
 
-    # -------------------------------------------------------------
-    # STEP 3: Create Booking (Order Checkout)
-    # -------------------------------------------------------------
+    # 3. Create Booking & Process Payment
     booking_payload = {
-        "holdReference": hold_reference
-    }
-
-    print(f"\n[3/4] Creating Booking from Hold Reference...")
-    resp = session.post(f"{BASE_URL}/bookings", json=booking_payload, headers=headers)
-    if resp.status_code not in (200, 201):
-        print(f"❌ Booking creation failed ({resp.status_code}): {resp.text}")
-        return
-
-    booking_data = resp.json()
-    booking_reference = booking_data.get("bookingReference") or booking_data.get("reference")
-    print(f"✅ Booking created! Booking Reference: {booking_reference}")
-
-    # -------------------------------------------------------------
-    # STEP 4: Confirm Payment & Trigger Outbox Event
-    # -------------------------------------------------------------
-    payment_payload = {
-        "bookingReference": booking_reference,
+        "holdReference": hold_reference,
         "paymentMethod": "CREDIT_CARD"
     }
 
-    print(f"\n[4/4] Confirming Payment for Booking...")
-    resp = session.post(f"{BASE_URL}/payments", json=payment_payload, headers=headers)
+    print(f"\n[3/3] Creating Booking & Confirming Payment...")
+    resp = session.post(f"{BASE_URL}/bookings", json=booking_payload, headers=headers)
     if resp.status_code not in (200, 201):
-        print(f"❌ Payment confirmation failed ({resp.status_code}): {resp.text}")
+        print(f"❌ Booking failed ({resp.status_code}): {resp.text}")
         return
 
-    payment_data = resp.json()
-    print("✅ Payment confirmed successfully!")
-    print(f"   Payment Response: {json.dumps(payment_data, indent=2)}")
+    booking_data = resp.json()
+    print("✅ Booking created & payment processed successfully!")
+    print(f"   Response Payload: {json.dumps(booking_data, indent=2)}")
 
     print("\n" + "=" * 60)
     print("🎉 FULL E2E FLOW COMPLETED SUCCESSFULLY!")
-    print("Check Spring Boot console logs to verify the Outbox publisher")
-    print("relayed the message to RabbitMQ and the consumer processed it.")
     print("=" * 60)
 
 
